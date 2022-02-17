@@ -33,7 +33,7 @@ export const Wizard = new FWizard(Name,
                                         e.work_exp + ` experience` +`\n\n`;
 
                                     resolve(result_output);
-                                }, 300);
+                                }, 200);
                             });
                         })
 
