@@ -3,6 +3,7 @@ import { check_ctx_type, kbd_inline,TG_TYPES,CTX_RES, clear_ctx, check_email, ge
 import { Middleware } from '../../middleware/default'
 import { FWizard, DATATYPE, check_ctx_for} from './factory'
 import { get_job } from '../../db/mongoose/webapp'
+import {ObjectId} from 'mongodb';
 
 // const {enter, leave} = Scenes.Stage
 // Name = name of the Scene or Wizard
@@ -24,10 +25,13 @@ export const Wizard = new FWizard(Name,
 
                     if(result.length != 0) {
                         var result_output:any = `*Result:*\n\n`;
-                        
+                        var kbd_array:any = []
+                        Object
                         let request = result.map((e:any) => {
                             return new Promise((resolve) => {
-                                setTimeout(() => {                                   
+                                setTimeout(() => {               
+                                    kbd_array.push({ text:e.job_title, cbvalue:new ObjectId(e._id).toString() })      
+
                                     result_output += `*` + e.job_title + `* \n` +
                                         e.company_location + `\n` + e.company_name + 
                                         e.work_exp + ` experience` +`\n\n`;
@@ -37,9 +41,15 @@ export const Wizard = new FWizard(Name,
                             });
                         })
 
-                        Promise.all(request).then(() => 
-                            ctx.replyWithMarkdown(result_output)
-                        );
+                        Promise.all(request).then(() => {
+                            //ctx.replyWithMarkdown(result_output)  
+                            console.log(kbd_array)
+
+                            kbd_array(kbd_array).then((o:any)=>{
+                                ctx.replyWithMarkdown(result_output, o )
+                            })
+
+                        });
                     }
                     else{
                         ctx.reply('Sorry. No result found.')
