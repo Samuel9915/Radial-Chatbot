@@ -1,11 +1,24 @@
 import mVacancy from "./model"
 
 
-export const get_job = (jobtitle:String)=>{
+export const get_joblist = (query:String)=>{
         
-    console.log("I received",jobtitle)
+    console.log("I received",query)
     return new Promise((resolve,reject)=>{
-        mVacancy.find({"job_title": new RegExp('\W*' + jobtitle + '\W*','i')}).limit(10)
+        mVacancy.find({
+            $or:
+            [
+                {
+                    "job_title": new RegExp('\W*' + query + '\W*','i')
+                },
+                {
+                    "company_name": new RegExp('\W*' + query + '\W*','i')
+                },
+                {
+                    "job_desc": new RegExp('\W*' + query + '\W*','i')
+                },
+            ]
+        }).limit(10)
             .then((d:any)=>{resolve(d)})
             .catch((e:any)=>{reject(e)})
         // mVacancy.find({"job_title":`/\W*(worker)\W*/i`}).limit(10)
