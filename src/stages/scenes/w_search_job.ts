@@ -1,8 +1,8 @@
 import { Telegraf, Context, Scenes, Markup, session, Telegram } from 'telegraf'
-import { check_ctx_type, kbd_inline,TG_TYPES,CTX_RES, clear_ctx, check_email, get_download_path, set_state, set_state_property, get_state_property } from '../../lib/tg'
+import { check_ctx_type, kbd_inline,TG_TYPES,CTX_RES, clear_ctx,init_state, check_email, get_download_path, set_state, set_state_property, get_state_property } from '../../lib/tg'
 import { Middleware } from '../../middleware/default'
 import { FWizard, DATATYPE, check_ctx_for} from './factory'
-import { get_joblist } from '../../db/mongoose/webapp'
+import { get_jobdetails, get_joblist } from '../../db/mongoose/webapp'
 import {ObjectId} from 'mongodb';
 
 // const {enter, leave} = Scenes.Stage
@@ -16,70 +16,76 @@ export const Triggers = ['searchjob']
 
 export const Wizard = new FWizard(Name,
     (ctx:any)=>{
-        check_ctx_for(ctx,DATATYPE.TEXT,
-            'Please enter job title, keyword or company to search:')
-        .then((res:any)=>{
-            if (res?.type==DATATYPE.TEXT) {
-                let query = (res.value as string).trim()
-                get_joblist(query).then((result:any)=>{
-
-                    if(result.length != 0) {
-                        var result_output:any = `*Result:*\n\n`;
-                        var jobs_array:any = []
-                        
-                        let request = result.map((e:any) => {
-                            return new Promise((resolve) => {
-                                setTimeout(() => {               
-                                    jobs_array.push({ text:e.job_title, cbvalue:new ObjectId(e._id).toString() })      
-
-                                    result_output += `*` + e.job_title + `* \n` +
-                                        e.company_location + `\n` + e.company_name +`\n\n`;
-
-                                    resolve(result_output);
-                                }, 200);
-                            });
-                        })
-
-                        Promise.all(request).then(() => {
-                            ctx.replyWithMarkdown(result_output)  
-
-
-                            // kbd_inline(jobs_array).then((o:any)=>{
-                            //     ctx.replyWithMarkdown(result_output, o )
-                            // })
-                        });
-                    }
-                    else{
-                        ctx.reply('Sorry. No result found.')
-                    }
-
-                    ctx.wizard.next()
-                    return ctx.wizard.steps[ctx.wizard.cursor](ctx);
+        check_ctx_type(ctx).then((res:any)=>{
+            console.log(res)
+            if (res==null) {
+                ctx.reply('Please enter job title, keyword or company to search:')
+            } else if (res.type==TG_TYPES.CB_QUERY) {   
+                console.log(res.data)
+                get_jobdetails(res.data).then((jobdetails:any)=>{
+                    ctx.replyWithMarkdown(
+                        `*Company Location:* \n` + jobdetails.company_location + `\n\n` + 
+                        `*Company Name:* \n` + jobdetails.company_name +`\n\n` +
+                        `*Job Title:* \n` + jobdetails.job_title + `\n\n` +
+                        `*Job Description:* \n` + jobdetails.job_desc + `\n\n` +
+                        `*Age Required:* \n` + jobdetails.age + `\n\n` +
+                        `*Work Experience:* \n` + jobdetails.work_exp + `\n\n` +
+                        `*Education Level:* \n` + jobdetails.edu_level + `\n\n` +
+                        `*Personalities:* \n` + jobdetails.personalities + `\n\n` 
+                    )
                 })
             }
+            else{
+                if (res.type==TG_TYPES.TEXT) {
+                    if(res.data.length >= 3){
+                        ctx.reply(`Searching for result....`)
+    
+                        let query = (res.data as string).trim()
+                        get_joblist(query).then((search_result:any)=>{
+        
+                            if(search_result.length != 0) {
+                                var result_output:any = "";
+                                var jobs_array:any = []
+                                
+                                let request = search_result.map((e:any) => {
+                                    return new Promise((resolve) => {
+                                        setTimeout(() => {               
+                                            jobs_array.push({ text: e.job_title, cbvalue:new ObjectId(e._id).toString() })      
+        
+                                            result_output += jobs_array.length + `. *` + e.job_title + `* \n` +
+                                                e.company_location + `\n` + e.company_name +`\n\n`;
+        
+                                            resolve(result_output);
+                                        }, 200);
+                                    });
+                                })
+        
+                                Promise.all(request).then(() => {
+                                    ctx.reply(jobs_array.length + ` result found `)
+                                    // ctx.replyWithMarkdown(result_output)
+        
+                                    kbd_inline(jobs_array).then((o:any)=>{
+                                        ctx.replyWithMarkdown(result_output, o )
+                                        
+                                    })
+                                });
+                                
+                            }
+                            else{
+                                ctx.reply('Sorry. No result found.')
+                                return ctx.scene.leave()
+                            }
+                        })
+                    }
+                    else{
+                        ctx.reply('Please enter more than 3 character to search.')
+                    }
+                }
+            }
+
         })
+        
     },
-    // (ctx:any)=>{
-    //     check_ctx_for(ctx,DATATYPE.CB_QUERY,'Welcome to the Bot',
-    //     [
-    //         {text:'',cbvalue:'register'},
-    //         {text:'Next',cbvalue:'next'},
-    //     ])
-    //     .then((res:any)=>{
-    //         if (res != null && res != false) {
-    //             switch (true) {
-    //                 case (res.value=='register'):
-    //                     return ctx.scene.enter('register-user')
-    //                 case (res.value=='searchjob'):
-    //                     return ctx.scene.enter('search-job')
-    //                 case (res.value=='uploadcv'):
-    //                     return ctx.scene.enter('upload-cv-wizard')
-    //                 case (res.value=='clearcv'):
-    //                     return ctx.scene.enter('clear-cv-wizard')
-    //                 }
-    //             }
-    //     })
-    // },
     // (ctx:any)=>{
     //     // register user
     //     // ask user for e-mail
