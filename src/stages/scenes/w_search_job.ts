@@ -95,6 +95,8 @@ export const Wizard = new FWizard(Name,
                                     kbd_inline(jobs_array).then((o:any)=>{
                                         ctx.replyWithMarkdown(result_output, o )
                                     })
+                                }).catch((e:any)=>{
+                                    console.log(e);
                                 });
                                 
                             }
