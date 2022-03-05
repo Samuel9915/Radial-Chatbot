@@ -14,7 +14,7 @@ export const Triggers = ['mainmenu']
 export const Wizard = new FWizard(Name,
     (ctx:any)=>{
         check_ctx_for(ctx,DATATYPE.CB_QUERY,'Welcome to the Bot',[
-            {text:'Register User',cbvalue:'register'},
+            //{text:'Register User',cbvalue:'register'},
             {text:'Search for jobs',cbvalue:'searchjob'},
             {text:'Register your CV',cbvalue:'uploadcv'},
             {text:'Reset CV',cbvalue:'clearcv'}]  )

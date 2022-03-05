@@ -1,5 +1,5 @@
-
 import mongoose, { mongo, Mongoose } from 'mongoose'
+
 //Create connection
 const c = mongoose.createConnection(process.env.MONGOSTR_WEB as string)  
 

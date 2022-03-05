@@ -5,6 +5,8 @@ import { FWizard, DATATYPE, check_ctx_for} from './factory'
 import { get_jobdetails, get_joblist } from '../../db/mongoose/webapp'
 import {ObjectId} from 'mongodb';
 
+//Global variables
+
 // const {enter, leave} = Scenes.Stage
 // Name = name of the Scene or Wizard
 export const Name = 'search-job'
@@ -13,7 +15,6 @@ export const Visible = true
 // Trigger = text or intent which trigers the Wizard
 export const Triggers = ['searchjob']
 
-
 export const Wizard = new FWizard(Name,
     (ctx:any)=>{
         check_ctx_type(ctx).then((res:any)=>{
@@ -21,19 +22,44 @@ export const Wizard = new FWizard(Name,
             if (res==null) {
                 ctx.reply('Please enter job title, keyword or company to search:')
             } else if (res.type==TG_TYPES.CB_QUERY) {   
-                console.log(res.data)
-                get_jobdetails(res.data).then((jobdetails:any)=>{
-                    ctx.replyWithMarkdown(
-                        `*Company Location:* \n` + jobdetails.company_location + `\n\n` + 
-                        `*Company Name:* \n` + jobdetails.company_name +`\n\n` +
-                        `*Job Title:* \n` + jobdetails.job_title + `\n\n` +
-                        `*Job Description:* \n` + jobdetails.job_desc + `\n\n` +
-                        `*Age Required:* \n` + jobdetails.age + `\n\n` +
-                        `*Work Experience:* \n` + jobdetails.work_exp + `\n\n` +
-                        `*Education Level:* \n` + jobdetails.edu_level + `\n\n` +
-                        `*Personalities:* \n` + jobdetails.personalities + `\n\n` 
-                    )
-                })
+                if (res.data=='cancel' || res.data=='exit') {
+                    ctx.reply('Bye. See you again.')
+                    return ctx.scene.leave()
+                }
+                else if(res.data == 'next'){
+
+                }
+                else{
+                    get_jobdetails(res.data).then((jobdetails:any)=>{
+                            kbd_inline([
+                            {text: "Apply now",cbvalue:'apply'},
+                            {text: "Apply now 2",url:'https://www.swinburne.edu.my/'},
+                            {text: "Cancel",cbvalue:'cancel'}
+                        ]).then((o:any)=>{
+                            ctx.replyWithMarkdown(
+                                `*` + jobdetails.job_title + `*` + `\n` +
+                                `*` + jobdetails.company_name + `*` + `\n\n` +
+                                `*Job Description:* \n` + jobdetails.job_desc + `\n\n` +
+                                `*Location:* ` + jobdetails.company_location + `\n\n` +
+                                `*Age Required:* ` + jobdetails.age + `\n` +
+                                `*Work Experience:* ` + jobdetails.work_exp + `\n` +
+                                `*Education Level:* ` + jobdetails.edu_level + `\n` +
+                                `*Personalities:* ` + jobdetails.personalities + `\n` 
+                            ,o)
+                            // ctx.replyWithMarkdown(
+                            //     `*Job Details:* \n\n` +
+                            //     `*Company Location:* ` + jobdetails.company_location + `\n` + 
+                            //     `*Company Name:* ` + jobdetails.company_name +`\n` +
+                            //     `*Job Title:* ` + jobdetails.job_title + `\n` +
+                            //     `*Job Description:* \n` + jobdetails.job_desc + `\n\n` +
+                            //     `*Age Required:* ` + jobdetails.age + `\n` +
+                            //     `*Work Experience:* ` + jobdetails.work_exp + `\n` +
+                            //     `*Education Level:* ` + jobdetails.edu_level + `\n` +
+                            //     `*Personalities:* ` + jobdetails.personalities + `\n` 
+                            // ,o)
+                        })
+                    })
+                }
             }
             else{
                 if (res.type==TG_TYPES.TEXT) {
@@ -42,8 +68,8 @@ export const Wizard = new FWizard(Name,
     
                         let query = (res.data as string).trim()
                         get_joblist(query).then((search_result:any)=>{
-        
                             if(search_result.length != 0) {
+                                
                                 var result_output:any = "";
                                 var jobs_array:any = []
                                 
@@ -53,7 +79,7 @@ export const Wizard = new FWizard(Name,
                                             jobs_array.push({ text: e.job_title, cbvalue:new ObjectId(e._id).toString() })      
         
                                             result_output += jobs_array.length + `. *` + e.job_title + `* \n` +
-                                                e.company_location + `\n` + e.company_name +`\n\n`;
+                                                e.company_name + `\n` + e.company_location +`\n\n`;
         
                                             resolve(result_output);
                                         }, 200);
@@ -61,12 +87,13 @@ export const Wizard = new FWizard(Name,
                                 })
         
                                 Promise.all(request).then(() => {
-                                    ctx.reply(jobs_array.length + ` result found `)
-                                    // ctx.replyWithMarkdown(result_output)
-        
+                                    jobs_array.push({ text: "Exit", cbvalue:'exit'})  
+
+                                    //jobs_array.push({ text: "Previous", cbvalue:'previous'})  
+                                    //jobs_array.push({ text: "Next", cbvalue:'next'})  
+
                                     kbd_inline(jobs_array).then((o:any)=>{
                                         ctx.replyWithMarkdown(result_output, o )
-                                        
                                     })
                                 });
                                 
