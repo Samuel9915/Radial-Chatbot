@@ -14,8 +14,9 @@ export const Triggers = ['mainmenu']
 export const Wizard = new FWizard(Name,
     (ctx:any)=>{
         check_ctx_for(ctx,DATATYPE.CB_QUERY,'Welcome to the Bot',[
-            //{text:'Register User',cbvalue:'register'},
-            {text:'Search for jobs',cbvalue:'searchjob'},
+            {text:'Register User',cbvalue:'register'},
+            //{text:'Search for jobs',cbvalue:'searchjob'},
+            {text:'View All Vacancies',cbvalue:'viewvacancies'},
             {text:'Register your CV',cbvalue:'uploadcv'},
             {text:'Reset CV',cbvalue:'clearcv'}]  )
         .then((res:any)=>{
@@ -23,8 +24,10 @@ export const Wizard = new FWizard(Name,
                 switch (true) {
                     case (res.value=='register'):
                         return ctx.scene.enter('register-user')
-                    case (res.value=='searchjob'):
-                        return ctx.scene.enter('search-job')
+                    // case (res.value=='searchjob'):
+                    //     return ctx.scene.enter('search-job')
+                    case (res.value=='viewvacancies'):
+                        return ctx.scene.enter('view-vacancies')
                     case (res.value=='uploadcv'):
                         return ctx.scene.enter('upload-cv-wizard')
                     case (res.value=='clearcv'):
@@ -32,6 +35,7 @@ export const Wizard = new FWizard(Name,
                     }
                 }
         })
+
     },
     (ctx:any)=>{
         check_ctx_for(ctx, DATATYPE.CONFIRMCANCEL, 'Please pick one')
