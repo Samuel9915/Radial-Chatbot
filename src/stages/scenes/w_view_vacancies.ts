@@ -83,7 +83,7 @@ export const Wizard = new FWizard(Name,
                                 get_jobdetails(res.data).then((jobdetails:any)=>{
                                     kbd_inline([
                                     {text: "Apply now",cbvalue:'apply'},
-                                    {text: "Apply now 2",url:'https://www.swinburne.edu.my/'},
+                                    //{text: "Apply now 2",url:'https://www.swinburne.edu.my/'},
                                     {text: "Cancel",cbvalue:'cancel'}
                                 ]).then((o:any)=>{
                                     ctx.replyWithMarkdown(
@@ -378,7 +378,7 @@ export const Wizard = new FWizard(Name,
                         get_jobdetails(res.data).then((jobdetails:any)=>{
                             kbd_inline([
                             {text: "Apply now",cbvalue:'apply'},
-                            {text: "Apply now 2",url:'https://www.swinburne.edu.my/'},
+                            //{text: "Apply now 2",url:'https://www.swinburne.edu.my/'},
                             {text: "Cancel",cbvalue:'cancel'}
                         ]).then((o:any)=>{
                             ctx.replyWithMarkdown(
